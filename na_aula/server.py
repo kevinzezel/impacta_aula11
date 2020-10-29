@@ -68,6 +68,12 @@ def consultar_dados():
     cursor.execute(sql_select)
     resultado = cursor.fetchall()
 
+    if len(resultado) == 0:
+        if rg_consulta == '*':
+            return flask.render_template('home.html',status=f'Nenhum RG cadastrado')
+        else:
+            return flask.render_template('home.html',status=f'RG: {rg_consulta} não encontrado')
+
     # Função ZIP():
     # lista1 = [1,2,3,4]
     # lista2 = ['a','b','c','d']
@@ -85,6 +91,7 @@ def consultar_dados():
     # [[('RG', '123'), ('Primeiro nome', 'carlos'), ('Ultimo nome', 'silva'), ('Telefone', 9876), ('E-mail', 'kevin.zezel@hotmail.com'), ('Comentários', 'ok')], 
     # [('RG', '123456'), ('Primeiro nome', 'kevin'), ('Ultimo nome', 'zezel'), ('Telefone', 123456), ('E-mail', 'kevin.zezel@hotmail.com'), ('Comentários', 'ok')]]
 
+    # return flask.render_template('bloco_resultado.html',resultado=resultado_final)
     return flask.render_template('home.html',resultado=resultado_final)
 
 @app.route('/consultar_email',methods=['POST'])
@@ -96,12 +103,12 @@ def consultar_email():
     if email_consulta == '':
         return flask.render_template('home.html',status="Preencha todos os campos")
 
-    if email_consulta == '*':
-        sql_select = f'SELECT rg,primeiro_nome,ultimo_nome,telefone,email,comentarios FROM formulario1' 
-    else:
-        sql_select = f'SELECT rg,primeiro_nome,ultimo_nome,telefone,email,comentarios FROM formulario1 WHERE email = "{email_consulta}"' 
+    sql_select = f'SELECT rg,primeiro_nome,ultimo_nome,telefone,email,comentarios FROM formulario1 WHERE email = "{email_consulta}"' 
     cursor.execute(sql_select)
     resultado = cursor.fetchall()
+
+    if len(resultado) == 0:
+        return flask.render_template('home.html',status=f'Email: {email_consulta} não encontrado')
 
     # Função ZIP():
     # lista1 = [1,2,3,4]
@@ -120,8 +127,8 @@ def consultar_email():
     # [[('RG', '123'), ('Primeiro nome', 'carlos'), ('Ultimo nome', 'silva'), ('Telefone', 9876), ('E-mail', 'kevin.zezel@hotmail.com'), ('Comentários', 'ok')], 
     # [('RG', '123456'), ('Primeiro nome', 'kevin'), ('Ultimo nome', 'zezel'), ('Telefone', 123456), ('E-mail', 'kevin.zezel@hotmail.com'), ('Comentários', 'ok')]]
 
+    # return flask.render_template('bloco_resultado.html',resultado=resultado_final)
     return flask.render_template('home.html',resultado=resultado_final)
-
 
 @app.route('/alterar',methods=['POST'])
 def alterar_dados():
@@ -133,6 +140,68 @@ def alterar_dados():
     telefone = info['telefone_alt']
     email = info['email_alt']
     comentarios = info['comentarios_alt']
+
+    if (rg == ""):
+        return flask.render_template('home.html',status="Preencha todos os campos")
+    
+    sql_select = f'SELECT * FROM formulario1 WHERE rg = "{rg}"' 
+    cursor.execute(sql_select)
+    resultado = cursor.fetchall()
+
+    if len(resultado) == 0:
+        return flask.render_template('home.html',status="RG não cadastrado")
+    else:
+        
+        # Não altera se tiver vazio
+        campos = ['primeiro_nome','ultimo_nome','telefone','email','comentarios']
+        dados = [p_nome,u_nome,telefone,email,comentarios]
+
+        sql_update = 'UPDATE formulario1 SET '
+        for idx,valor in enumerate(dados):
+            if valor != '':
+                if campos[idx] == 'telefone':
+                    sql_update = sql_update + f'{campos[idx]} = {valor},'
+                else:
+                    sql_update = sql_update + f'{campos[idx]} = "{valor}",'
+
+        sql_update = sql_update[:-1]        
+        sql_update = sql_update + f' WHERE rg = "{rg}"'
+
+        # Altera tudo
+        # sql_update = f"""
+        #         UPDATE formulario1 SET email = "{email}", comentarios = "{comentarios}", 
+        #         primeiro_nome = "{p_nome}",  ultimo_nome = "{u_nome}", 
+        #         telefone = {telefone} WHERE rg = "{rg}"
+        # """ 
+        cursor.execute(sql_update)
+        banco_de_dados.commit()
+        return flask.render_template('home.html',status=f"RG: {rg} alterado com sucesso")
+
+@app.route('/deletar',methods=['POST'])
+def deletar_dados():
+    info = flask.request.form.to_dict()
+    rg = info['rg_del']
+
+    if rg == '':
+        return flask.render_template('home.html',status="Preencha todos os campos")
+    
+    if rg == '*':
+        sql_delete = f'DELETE FROM formulario1'
+        cursor.execute(sql_delete)
+        banco_de_dados.commit()
+        return flask.render_template('home.html',status=f"Todos os RGs foram deletados com sucesso")
+
+    sql_select = f'SELECT * FROM formulario1 WHERE rg = "{rg}"' 
+    cursor.execute(sql_select)
+    resultado = cursor.fetchall()
+
+    if len(resultado) == 0:
+        return flask.render_template('home.html',status=f"RG: {rg} não cadastrado")
+    else:
+        sql_delete = f'DELETE FROM formulario1 WHERE rg = "{rg}"'
+        cursor.execute(sql_delete)
+        banco_de_dados.commit()
+        return flask.render_template('home.html',status=f"RG: {rg} deletado sucesso")
 
 if __name__ == "__main__":
     # localhost = 127.0.0.1
