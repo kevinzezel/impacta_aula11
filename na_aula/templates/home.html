@@ -16,7 +16,8 @@
         </ul>
         <br>
         <span style="color:red;"><b>{{ status }}</b></span>  
-        <div id="consultar">
+        
+        <div id="consultar" style="display: '';">
 
             <h2>Consultar</h2>
 
@@ -24,7 +25,7 @@
                 <legend>Consultar</legend>
                 <form action="consultar_email" method="POST" name="formulario2" id="formulario2">
                     <label for="email_consulta">Email:</label>
-                    <input id="email_consulta" name="email_consulta" type="text">
+                    <input id="email_consulta" name="email_consulta" type="email">
                     <br><br>
                     <button type="submit">Consultar</button>
                 </form>
@@ -41,6 +42,26 @@
             </fieldset>
 
             <h1>Resultados</h1>
+            
+        
+            <ul>
+                {% for item in resultado %}
+
+                    {% for i in item %}
+                        <li> <b>{{ loop.index }} - {{ i[0] }}:</b>  {{ i[1] }}</li>
+                    {% endfor %}
+
+                    {% if loop.last == false %}
+                        <p> ---------------- </p>   
+                    {% else %}
+                        <p> ####################################### </p>  
+                    {% endif %}
+                    
+                {% endfor %}
+            </ul>
+
+            
+            
             
 
         </div>
@@ -64,7 +85,7 @@
                     <input id="telefone" name="telefone" type="number">
                     <br><br>
                     <label for="email">Email:</label>
-                    <input id="email" name="email" type="text">
+                    <input id="email" name="email" type="email">
                     <br><br>
                     <label for="comentarios">Comentarios:</label>
                     <input id="comentarios" name="comentarios" type="text">
@@ -94,7 +115,7 @@
                     <input id="telefone_alt" name="telefone_alt" type="number">
                     <br><br>
                     <label for="email_alt">Email:</label>
-                    <input id="email_alt" name="email_alt" type="text">
+                    <input id="email_alt" name="email_alt" type="email">
                     <br><br>
                     <label for="comentarios_alt">Comentarios:</label>
                     <input id="comentarios_alt" name="comentarios_alt" type="text">
