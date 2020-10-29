@@ -42,15 +42,14 @@
             </fieldset>
 
             <h1>Resultados</h1>
-            
-        
+
             <ul>
                 {% for item in resultado %}
-
+        
                     {% for i in item %}
                         <li> <b>{{ loop.index }} - {{ i[0] }}:</b>  {{ i[1] }}</li>
                     {% endfor %}
-
+        
                     {% if loop.last == false %}
                         <p> ---------------- </p>   
                     {% else %}
@@ -59,10 +58,9 @@
                     
                 {% endfor %}
             </ul>
-
             
-            
-            
+            <!-- {% block bloco_resultado %}
+            {% endblock %} -->
 
         </div>
 
