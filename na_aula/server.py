@@ -29,10 +29,26 @@ def salvar_dados():
     telefone = info['telefone']
     email = info['email']
     comentarios = info['comentarios']
- 
-    sql_insert = f'INSERT INTO formulario1 (email,rg,comentarios, primeiro_nome, telefone, ultimo_nome) VALUES ("{email}","{rg}","{comentarios}","{p_nome}",{telefone},"{u_nome}")'
-    cursor.execute(sql_insert)
-    banco_de_dados.commit()
+
+    if ((rg == "") | (p_nome == "") | (u_nome == "") | (telefone == "") | (email == "") | (comentarios == "")):
+        return flask.render_template('home.html',status="Preencha todos os campos")
+    
+    sql_select = f'SELECT * FROM formulario1 WHERE rg = "{rg}"' 
+    cursor.execute(sql_select)
+    resultado = cursor.fetchall()
+    if len(resultado) != 0:
+        return flask.render_template('home.html',status=f"RG: {rg} já cadastrado")
+    else:
+        sql_insert = f'INSERT INTO formulario1 (email,rg,comentarios, primeiro_nome, telefone, ultimo_nome) VALUES ("{email}","{rg}","{comentarios}","{p_nome}",{telefone},"{u_nome}")'
+        cursor.execute(sql_insert)
+        banco_de_dados.commit()
+
+    # try:
+    #     sql_insert = f'INSERT INTO formulario1 (email,rg,comentarios, primeiro_nome, telefone, ultimo_nome) VALUES ("{email}","{rg}","{comentarios}","{p_nome}",{telefone},"{u_nome}")'
+    #     cursor.execute(sql_insert)
+    #     banco_de_dados.commit()
+    # except mysql.connector.errors.IntegrityError:
+    #     return flask.render_template('home.html',status=f"RG: {rg} já cadastrado")
 
     return flask.render_template('home.html')
 
@@ -42,13 +58,81 @@ def consultar_dados():
     info = flask.request.form.to_dict()
     rg_consulta = info['rg_consulta']
 
-    sql_select = f'SELECT * FROM formulario1 WHERE rg = "{rg_consulta}"' 
+    if rg_consulta == '':
+        return flask.render_template('home.html',status="Preencha todos os campos")
+
+    if rg_consulta == '*':
+        sql_select = f'SELECT rg,primeiro_nome,ultimo_nome,telefone,email,comentarios FROM formulario1' 
+    else:
+        sql_select = f'SELECT rg,primeiro_nome,ultimo_nome,telefone,email,comentarios FROM formulario1 WHERE rg = "{rg_consulta}"' 
     cursor.execute(sql_select)
     resultado = cursor.fetchall()
-    
-    print(resultado)
 
-    return flask.render_template('home.html')
+    # Função ZIP():
+    # lista1 = [1,2,3,4]
+    # lista2 = ['a','b','c','d']
+    # list(zip(lista1,lista2)) é [[1,'a'],[2,'b'],[3,'c'],[4,'d']]
+
+    campos = ['RG','Primeiro nome','Ultimo nome','Telefone','E-mail','Comentários']
+    resultado_final = []
+    for i in resultado:
+        resultado_final.append(list(zip(campos,i)))
+
+    # Transformamos 
+    # [('123', 'carlos', 'silva', 9876, 'kevin.zezel@hotmail.com', 'ok'),
+    # ('123456', 'kevin', 'zezel', 123456, 'kevin.zezel@hotmail.com', 'ok')]
+    # em
+    # [[('RG', '123'), ('Primeiro nome', 'carlos'), ('Ultimo nome', 'silva'), ('Telefone', 9876), ('E-mail', 'kevin.zezel@hotmail.com'), ('Comentários', 'ok')], 
+    # [('RG', '123456'), ('Primeiro nome', 'kevin'), ('Ultimo nome', 'zezel'), ('Telefone', 123456), ('E-mail', 'kevin.zezel@hotmail.com'), ('Comentários', 'ok')]]
+
+    return flask.render_template('home.html',resultado=resultado_final)
+
+@app.route('/consultar_email',methods=['POST'])
+def consultar_email():
+    
+    info = flask.request.form.to_dict()
+    email_consulta = info['email_consulta']
+
+    if email_consulta == '':
+        return flask.render_template('home.html',status="Preencha todos os campos")
+
+    if email_consulta == '*':
+        sql_select = f'SELECT rg,primeiro_nome,ultimo_nome,telefone,email,comentarios FROM formulario1' 
+    else:
+        sql_select = f'SELECT rg,primeiro_nome,ultimo_nome,telefone,email,comentarios FROM formulario1 WHERE email = "{email_consulta}"' 
+    cursor.execute(sql_select)
+    resultado = cursor.fetchall()
+
+    # Função ZIP():
+    # lista1 = [1,2,3,4]
+    # lista2 = ['a','b','c','d']
+    # list(zip(lista1,lista2)) é [[1,'a'],[2,'b'],[3,'c'],[4,'d']]
+
+    campos = ['RG','Primeiro nome','Ultimo nome','Telefone','E-mail','Comentários']
+    resultado_final = []
+    for i in resultado:
+        resultado_final.append(list(zip(campos,i)))
+
+    # Transformamos 
+    # [('123', 'carlos', 'silva', 9876, 'kevin.zezel@hotmail.com', 'ok'),
+    # ('123456', 'kevin', 'zezel', 123456, 'kevin.zezel@hotmail.com', 'ok')]
+    # em
+    # [[('RG', '123'), ('Primeiro nome', 'carlos'), ('Ultimo nome', 'silva'), ('Telefone', 9876), ('E-mail', 'kevin.zezel@hotmail.com'), ('Comentários', 'ok')], 
+    # [('RG', '123456'), ('Primeiro nome', 'kevin'), ('Ultimo nome', 'zezel'), ('Telefone', 123456), ('E-mail', 'kevin.zezel@hotmail.com'), ('Comentários', 'ok')]]
+
+    return flask.render_template('home.html',resultado=resultado_final)
+
+
+@app.route('/alterar',methods=['POST'])
+def alterar_dados():
+    info = flask.request.form.to_dict()
+
+    rg = info['rg_alt']
+    p_nome = info['primeiro_nome_alt']
+    u_nome = info['ultimo_nome_alt']
+    telefone = info['telefone_alt']
+    email = info['email_alt']
+    comentarios = info['comentarios_alt']
 
 if __name__ == "__main__":
     # localhost = 127.0.0.1
